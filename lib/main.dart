@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'app_config.dart';
 import 'webview_screen.dart';
@@ -12,6 +13,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+     SystemChrome.setPreferredOrientations(AppConfig.webGLAllowedOrientations);
     return MaterialApp(
       // title: 'Flutter Demo',
       debugShowCheckedModeBanner: false,

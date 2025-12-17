@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class AppConfig {
   static const String webGLEndpoint =
@@ -7,6 +8,13 @@ class AppConfig {
   static const String logoPath = 'assets/images/Logo.png';
   static const String loadingBackgroundPath =
       'assets/images/back-3.png';
+
+  static const List<DeviceOrientation> webGLAllowedOrientations = [
+    // DeviceOrientation.portraitUp,
+    // DeviceOrientation.portraitDown,
+    DeviceOrientation.landscapeLeft,
+    DeviceOrientation.landscapeRight,
+  ];
 
   //========================= Loading Screen ====================//
   static const String webGLLoadingText = 'Initialization...';
