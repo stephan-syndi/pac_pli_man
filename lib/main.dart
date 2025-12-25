@@ -1,54 +1,58 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:app_tracking_transparency/app_tracking_transparency.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-import 'app_config.dart';
-import 'webview_screen.dart';
+import 'core/services/sdk_initializer.dart';
+import 'firebase_options.dart';
+import 'package:flutter/cupertino.dart';
+import 'core/screens/splash_screen.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  initTrackingAppTransparency();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  SdkInitializer.prefs = await SharedPreferences.getInstance();
+  await SdkInitializer.loadRuntimeStorageToDevice();
+  var isFirstStart = !SdkInitializer.hasValue("isFirstStart");
+  var isOrganic = SdkInitializer.getValue("Organic");
+  print('add af2 $isFirstStart $isOrganic');
+  if (isFirstStart) SdkInitializer.initAppsFlyer();
+  FirebaseMessaging.onMessageOpenedApp.listen(_onMessageOpenedApp);
+  runApp(const App());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+void _onMessageOpenedApp(RemoteMessage message) {
+  print('2 Notification caused the app to open: ${message.data.toString()}');
+  SdkInitializer.pushURL = message.data['url'];
+  // TODO: Add navigation or specific handling based on message data
+}
+
+Future<void> initTrackingAppTransparency() async {
+  try {
+    final TrackingStatus status =
+        await AppTrackingTransparency.requestTrackingAuthorization();
+    print('App Tracking Transparency status: $status');
+    int timeout = 0;
+    while (status == TrackingStatus.notDetermined && timeout < 10) {
+      final TrackingStatus newStatus =
+          await AppTrackingTransparency.requestTrackingAuthorization();
+      await Future.delayed(const Duration(milliseconds: 200));
+      timeout++;
+    }
+  } catch (e) {
+    print('Error requesting App Tracking Transparency authorization: $e');
+  }
+}
+
+class App extends StatelessWidget {
+  const App({super.key});
 
   @override
   Widget build(BuildContext context) {
-     SystemChrome.setPreferredOrientations(AppConfig.webGLAllowedOrientations);
-    return MaterialApp(
-      // title: 'Flutter Demo',
+    return const CupertinoApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        primaryColor: const Color(0xFF6A0DAD), // насыщенный фиолетовый
-        scaffoldBackgroundColor: const Color(
-          0xFF1A0F2E,
-        ), // почти черно-фиолетовый
-        textTheme: const TextTheme(
-          displayLarge: TextStyle(
-            fontSize: 42,
-            fontWeight: FontWeight.bold,
-            color: Color.fromARGB(255, 126, 7, 237), // светлый фиолетовый
-          ),
-          headlineMedium: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.w600,
-            color: AppConfig.webGLLoadingTextColor,
-          ),
-          titleMedium: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w500,
-            color: Color(0xFFF0E6FF),
-          ),
-          bodyLarge: TextStyle(fontSize: 16, color: Color(0xFFE8DAFF)),
-          bodyMedium: TextStyle(fontSize: 14, color: Color(0xFFDAC9F7)),
-          labelLarge: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFFFFFFFF),
-          ),
-        ),
-      ),
-      home: WebviewScreen(),
+      home: SplashScreen(),
     );
   }
 }
