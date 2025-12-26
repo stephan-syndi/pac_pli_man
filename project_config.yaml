@@ -17,10 +17,10 @@ icon_path: "assets/images/Icon.png"
 team_id: "RBZ7NT994T"
 
 # Версия приложения
-app_version: "1.0.1"
+app_version: "1.0.3"
 
 # Номер сборки
-build_number: "2"
+build_number: "3"
 
 # Podfile (опционально)
 # Путь к шаблонному Podfile
